@@ -157,17 +157,15 @@ public:
     /**
      * @brief Sets the host address to the given FQDN and clears the stored IP.
      * @param fqdn Null-terminated FQDN string. Truncated to MAX_FQDN_LEN if longer.
-     * @return true if the FQDN fit entirely, false on truncation, mutex failure or
-     *         if FQDN is not RFC conform.
+     * @return true if the FQDN is valid, false on mutex failure or if FQDN is not RFC conform.
      */
     bool setFqdn(const char* fqdn) {
         if (!isValidFqdn(fqdn)) return false;
         if (!_lock()) return false;
-        int written = snprintf(_fqdn, sizeof(_fqdn), "%s", fqdn);
-        bool ok = (written >= 0 && (size_t)written < sizeof(_fqdn));
+        snprintf(_fqdn, sizeof(_fqdn), "%s", fqdn);
         _ip = IPAddress(0,0,0,0);
         _unlock();
-        return ok;
+        return true;
     }
 
     /**
@@ -200,9 +198,8 @@ public:
      * stored and the IP is cleared. Otherwise returns false,
      *
      * @param str Null-terminated input string.
-     * @return true on success, false on neither valid IP addres nor valid FQDN found,
-     *         the FQDN was truncated (means also not valid), or mutex acquisition
-     *         failed.
+     * @return true on success, false on neither valid IP address nor valid FQDN found,
+     *         or mutex acquisition failed.
      */
     bool fromStr(const char *str) {
         unsigned int ip[4] = {0, 0, 0, 0};
@@ -212,17 +209,15 @@ public:
         else if (!isValidFqdn(str)) return false;
 
         if (!_lock()) return false;
-        bool ok = true;
         if (isIp) {
             _ip = IPAddress(ip[0], ip[1], ip[2], ip[3]);
             _fqdn[0] = 0;
         } else {
-            int written = snprintf(_fqdn, sizeof(_fqdn), "%s", str);
-            ok = (written >= 0 && (size_t)written < sizeof(_fqdn));
+            snprintf(_fqdn, sizeof(_fqdn), "%s", str);
             _ip = IPAddress(0,0,0,0);
         }
         _unlock();
-        return ok;
+        return true;
     }
 
     /**
