@@ -8,7 +8,7 @@ an IPv4 address or a fully qualified domain name (FQDN).
 - Stores either an IPv4 address or an FQDN — but not both simultaneously
 - RFC 1035 / RFC 3696 compliant FQDN validation
 - IPv4 address validation with octet range checking
-- Built-in DNS resolution on ESP32 and ESP8266
+- Built-in DNS resolution on ESP32, ESP8266 and AVR platforms
 - Custom resolver callback support for other platforms
 - Thread-safe via `std::timed_mutex` with configurable timeout (non-AVR platforms)
 - Lightweight: no dynamic memory allocation for the host data itself
@@ -144,7 +144,7 @@ Copy construction and copy assignment are disabled.
 |`static bool isValidFqdn(const char* str)`|RFC 1035/3696 FQDN validation|
 |`static bool isValidIp(const char* str)`|IPv4 dotted-decimal validation|
 
-All public methods are thread-safe on non-AVR platforms and return `false` on mutex acquisition timeout.
+All public methods are thread-safe on non-AVR platforms and the bool ones return `false` on mutex acquisition timeout.
 
 ## License
 

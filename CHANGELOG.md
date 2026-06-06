@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Changed
+
+- Minor fixes in `README.md`
+
 ## [0.2.0] - 2026-06-06
 
 ### Added
