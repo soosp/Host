@@ -10,7 +10,7 @@ an IPv4 address or a fully qualified domain name (FQDN).
 - IPv4 address validation with octet range checking
 - Built-in DNS resolution on ESP32 and ESP8266
 - Custom resolver callback support for other platforms
-- Thread-safe via `std::timed_mutex` with configurable timeout
+- Thread-safe via `std::timed_mutex` with configurable timeout (non-AVR platforms)
 - Lightweight: no dynamic memory allocation for the host data itself
 
 ## Supported Platforms
@@ -19,7 +19,10 @@ an IPv4 address or a fully qualified domain name (FQDN).
 |----------|---------------|
 |ESP32 (Arduino Core 3.x)|`Network.hostByName`|
 |ESP8266|`WiFi.hostByName`|
+|AVR (Ethernet shield)*|`DNSClient::getHostByName`|
 |Other|Custom resolver required|
+
+ *On the Arduino AVR platform, functionality is limited due to scarce resources. For example, on an ATmega328-based Uno, a 254-byte FQDN can already take up too much memory. The situation is better on the ATmega2560-based Mega.
 
 ## Installation
 
@@ -130,7 +133,7 @@ Copy construction and copy assignment are disabled.
 |`static bool isValidFqdn(const char* str)`|RFC 1035/3696 FQDN validation|
 |`static bool isValidIp(const char* str)`|IPv4 dotted-decimal validation|
 
-All public methods are thread-safe and return `false` on mutex acquisition timeout.
+All public methods are thread-safe on non-AVR platforms and return `false` on mutex acquisition timeout.
 
 ## License
 

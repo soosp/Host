@@ -4,10 +4,14 @@
 #include <Network.h>
 #elif defined(ARDUINO_ARCH_ESP8266)
 #include <ESP8266WiFi.h>
+#elif defined(ARDUINO_ARCH_AVR)
+#include <Ethernet.h>
+#include <Dns.h>
 #endif
-#include <functional>
+#ifndef ARDUINO_ARCH_AVR
 #include <mutex>
 #include <chrono>
+#endif
 
 #ifndef HOST_MUTEX_TIMEOUT
 #define HOST_MUTEX_TIMEOUT 1000
@@ -40,7 +44,7 @@ public:
      * @param ip   Output parameter receiving the resolved IP address.
      * @return true if resolution succeeded, false otherwise.
      */
-    using ResolverFn = std::function<bool(const char*, IPAddress&)>;
+    using ResolverFn = bool(*)(const char*, IPAddress&);
 
     /**
      * @brief Constructs an empty Host (IP 0.0.0.0, no FQDN).
@@ -295,11 +299,19 @@ public:
     }
 
 private:
+#ifndef ARDUINO_ARCH_AVR
     mutable std::timed_mutex _mutex; ///< mutex protecting _ip and _fqdn.
+#endif
     IPAddress _ip;                   ///< Stored IPv4 address. Valid when _fqdn[0] == 0.
     char _fqdn[MAX_FQDN_LEN + 1];    ///< Stored FQDN. Empty string when IP is used instead.
     ResolverFn _resolver;            ///< DNS resolver function used by getIP().
 
+#ifdef ARDUINO_ARCH_AVR
+    /** @brief AVR is single-threaded; lock always succeeds. Timeout parameter is ignored. */
+    bool _lock(uint32_t /*timeoutMs*/ = MUTEX_TIMEOUT) const { return true; }
+    /** @brief AVR is single-threaded; no-op. */
+    void _unlock() const {}
+#else
     /** @brief Tries to acquire the mutex. @return true on success, false on timeout. */
     bool _lock(uint32_t timeoutMs = MUTEX_TIMEOUT) const {
         return _mutex.try_lock_for(std::chrono::milliseconds(timeoutMs));
@@ -309,6 +321,7 @@ private:
     void _unlock() const {
         _mutex.unlock();
     }
+#endif
 
 #ifdef ARDUINO_ARCH_ESP32
     /**
@@ -330,6 +343,19 @@ private:
     static bool _defaultResolver(const char* fqdn, IPAddress& ip) {
         return WiFi.hostByName(fqdn, ip) == 1;
     }
+#elif defined(ARDUINO_ARCH_AVR)
+    /**
+     * @brief Default DNS resolver using the DNSClient::getHostByName()
+              from Arduino Ethernet library.
+     * @param fqdn Null-terminated FQDN string to resolve.
+     * @param ip   Output parameter receiving the resolved IP address.
+     * @return true if resolution succeeded, false otherwise.
+     */
+    static bool _defaultResolver(const char* fqdn, IPAddress& ip) {
+        DNSClient dns;
+        dns.begin(Ethernet.dnsServerIP());
+        return dns.getHostByName(fqdn, ip) == 1;
+    }
 #else
     /**
      * @brief Stub resolver for non-ESP32 platforms. Always returns false.
@@ -338,7 +364,7 @@ private:
      * @param ip   Output parameter (unused).
      * @return false always.
      */
-    static bool _defaultResolver(const char* fqdn, IPAddress& ip) {
+    static bool _defaultResolver(const char* /*fqdn*/, IPAddress& /*ip*/) {
         return false;
     }
 #endif    

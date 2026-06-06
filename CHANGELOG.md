@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- Support AVR platform
+
+### Changed
+
+- Use pointer for `ResolverFn` instead of `std::function`
+
 ## [0.1.1] - 2026-06-06
 
 ### Changed
