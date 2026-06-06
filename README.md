@@ -28,18 +28,27 @@ The situation is better on the ATmega2560-based Mega.
 
 ## Installation
 
-### PlatformIO
+### Arduino IDE
 
-Add to your `platformio.ini`:
+**Install via Library Manager:**
+
+Search for **Host** in the Library Manager (Sketch → Include Library → Manage Libraries).
+
+**Install manually:**
+
+1. Download this repository as a ZIP file
+2. In Arduino IDE: **Sketch → Include Library → Add .ZIP Library**
+
+### PlatformIO
 
 ```ini
 lib_deps =
-    https://github.com/soosp/Host.git
+    soosp/Host
 ```
 
-### Arduino IDE
+### Manual
 
-Download the repository as a ZIP and install via **Sketch → Include Library → Add .ZIP Library**.
+Copy the `Host.h` file into your project or library folder.
 
 ## Usage
 
