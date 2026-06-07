@@ -146,7 +146,18 @@ Host h("mydevice.local", mdnsWithFallback);
 ### Configuration
 
 The default mutex timeout is overridable via the `HOST_MUTEX_TIMEOUT` preprocessor macro.
-It must be defined before including this library:
+It must be defined before including this library.
+
+#### In PlatformIO (`platformio.ini`)
+
+```ini
+build_flags =
+    -D HOST_MUTEX_TIMEOUT 500
+```
+
+#### In Arduino IDE
+
+Define it before including `Host.h`:
 
 ```cpp
 #define HOST_MUTEX_TIMEOUT 500
