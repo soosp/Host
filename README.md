@@ -113,39 +113,145 @@ Host h("example.com", myResolver);
 
 ### Configuration
 
-The default mutex timeout overridable via `HOST_MUTEX_TIMEOUT` preprocessor macro.
-It should be defined before including this library:
+The default mutex timeout is overridable via the `HOST_MUTEX_TIMEOUT` preprocessor macro.
+It must be defined before including this library:
 
 ```cpp
 #define HOST_MUTEX_TIMEOUT 500
 #include <Host.h>
 ```
 
+### Types
+
+```cpp
+using ResolverFn = bool(*)(const char* fqdn, IPAddress& ip);
+```
+
+Function pointer type for custom DNS resolver callbacks. The function receives a
+null-terminated FQDN string and must write the resolved IP into `ip`.
+Returns `true` on success, `false` on failure.
+
 ### Constructors
 
 ```cpp
 Host(ResolverFn resolver = _defaultResolver)
+```
+
+Constructs an empty Host (IP `0.0.0.0`, no FQDN).
+
+```cpp
 explicit Host(const IPAddress ip, ResolverFn resolver = _defaultResolver)
+```
+
+Constructs a Host from an IPv4 address.
+
+```cpp
 explicit Host(const char* str, ResolverFn resolver = _defaultResolver)
 ```
+
+Constructs a Host from a string. The string is first tried as a dotted-decimal
+IPv4 address, then as an FQDN. If neither is valid, the Host is initialized empty.
+
+All constructors accept an optional `resolver` parameter. On ESP32 the default resolver
+uses `Network.hostByName`, on ESP8266 `WiFi.hostByName`, on AVR `DNSClient::getHostByName`.
+On other platforms a stub resolver is used that always returns `false`; a custom resolver
+must be provided for DNS resolution to work.
 
 Copy construction and copy assignment are disabled.
 
 ### Methods
 
-|Method|Description|
-|--------|-------------|
-|`bool isEmpty()`|Returns true if neither IP address nor FQDN is stored|
-|`IPAddress getIP()`|Returns the IP; performs DNS lookup if only FQDN is stored|
-|`bool setIP(IPAddress ip)`|Sets the IP, clears FQDN|
-|`bool getFqdn(char* buf, size_t len)`|Copies the stored FQDN into buf|
-|`bool setFqdn(const char* fqdn)`|Sets the FQDN if RFC-conformant, clears IP|
-|`bool toStr(char* buf, size_t len)`|Serializes to dotted-decimal IP or FQDN string|
-|`bool fromStr(const char* str)`|Parses an IP or FQDN string|
-|`static bool isValidFqdn(const char* str)`|RFC 1035/3696 FQDN validation|
-|`static bool isValidIp(const char* str)`|IPv4 dotted-decimal validation|
+---
 
-All public methods are thread-safe on non-AVR platforms and the bool ones return `false` on mutex acquisition timeout.
+#### `bool isEmpty()`
+
+Returns `true` if the Host holds neither an IP address nor an FQDN (i.e. it was
+default-constructed, or parsing failed). Also returns `true` if the internal mutex
+could not be acquired within `MUTEX_TIMEOUT` milliseconds.
+
+---
+
+#### `IPAddress getIP()`
+
+Returns the IP address of the host. If an IP address is stored directly, it is
+returned immediately. If only an FQDN is stored, a DNS lookup is performed via
+the resolver function. The DNS lookup is intentionally done outside the mutex to
+avoid blocking other threads during network I/O.
+
+Returns `0.0.0.0` if the mutex could not be acquired or DNS resolution failed.
+
+---
+
+#### `bool setIP(IPAddress ip)`
+
+Sets the host address to the given IPv4 address and clears any stored FQDN.
+Returns `true` on success, `false` if the mutex could not be acquired.
+
+---
+
+#### `bool getFqdn(char* buf, size_t len)`
+
+Copies the stored FQDN into `buf`. At most `len` bytes are written, including
+the null terminator. Returns `true` if the FQDN fit entirely into the buffer,
+`false` on truncation or mutex failure.
+
+---
+
+#### `bool setFqdn(const char* fqdn)`
+
+Sets the host address to the given FQDN and clears the stored IP.
+The FQDN is validated against RFC 1035 / RFC 3696 rules before storing.
+Returns `true` on success, `false` if the FQDN is not RFC-conformant or
+the mutex could not be acquired.
+
+---
+
+#### `bool toStr(char* buf, size_t len)`
+
+Serializes the host to a human-readable string. Writes a dotted-decimal IP
+address (e.g. `"192.168.1.1"`) if no FQDN is set, otherwise writes the FQDN.
+At most `len` bytes are written, including the null terminator.
+Returns `true` if the result fit entirely, `false` on truncation or mutex failure.
+
+---
+
+#### `bool fromStr(const char* str)`
+
+Parses a string into a host address. The string is first tried as a dotted-decimal
+IPv4 address with all octets in range [0, 255]; if that fails, it is tried as an
+RFC-conformant FQDN. The previously stored address is replaced only on success.
+Returns `true` on success, `false` if the string is neither a valid IP address
+nor a valid FQDN, or if the mutex could not be acquired.
+
+---
+
+#### `static bool isValidFqdn(const char* str)`
+
+Validates an FQDN string against RFC 1035 / RFC 3696 rules:
+
+- Total length must not exceed 253 characters (excluding any trailing dot)
+- Each dot-separated label must be 1–63 characters long
+- Labels may only contain ASCII letters, digits, and hyphens
+- Labels must not start or end with a hyphen
+- The last label (TLD) must not be all-numeric
+
+Returns `true` if the string is a valid FQDN, `false` otherwise.
+
+---
+
+#### `static bool isValidIp(const char* str)`
+
+Validates a string as a dotted-decimal IPv4 address. All four octets must be
+present and in the range [0, 255]. Extra characters after the fourth octet
+(e.g. `"1.2.3.4.5"`) cause the validation to fail.
+
+Returns `true` if the string is a valid IPv4 address, `false` otherwise.
+
+---
+
+All public methods except `isValidFqdn` and `isValidIp` are thread-safe on
+non-AVR platforms. The bool-returning methods return `false` on mutex acquisition
+timeout.
 
 ## License
 
