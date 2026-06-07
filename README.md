@@ -92,6 +92,9 @@ if (Host::isValidIp("192.168.1.1"))   { ... }
 
 ### Custom resolver
 
+A custom resolver can be passed to any constructor as the last parameter.
+The function must match the `ResolverFn` signature:
+
 ```cpp
 bool myResolver(const char* fqdn, IPAddress& ip) {
     // your DNS implementation
@@ -99,6 +102,35 @@ bool myResolver(const char* fqdn, IPAddress& ip) {
 }
 
 Host h("example.com", myResolver);
+```
+
+On ESP32, an mDNS resolver can be used for `.local` hostnames:
+
+```cpp
+#include <ESPmDNS.h>
+
+bool mdnsResolver(const char* fqdn, IPAddress& ip) {
+    ip = MDNS.queryHost(fqdn);
+    return ip != IPAddress(0,0,0,0);
+}
+
+Host h("mydevice.local", mdnsResolver);
+```
+
+Or combined with regular DNS as a fallback:
+
+```cpp
+#include <ESPmDNS.h>
+
+bool mdnsWithFallback(const char* fqdn, IPAddress& ip) {
+    // Try mDNS first (fast, local network)
+    ip = MDNS.queryHost(fqdn);
+    if (ip != IPAddress(0,0,0,0)) return true;
+    // Fall back to regular DNS
+    return Network.hostByName(fqdn, ip) == 1;
+}
+
+Host h("mydevice.local", mdnsWithFallback);
 ```
 
 ## API

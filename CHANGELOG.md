@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- mDNS resolver example in `README.md`
+
 ## [0.3.0]
 
 ### Added
