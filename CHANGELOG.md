@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Changed
+
+- Use fromStr() in constructor to use not just FQDN but dotted decimal IP address string too.
+
 ## [0.2.1] - 2026-06-06
 
 ### Changed

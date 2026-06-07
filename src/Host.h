@@ -72,20 +72,19 @@ public:
     }
 
     /**
-     * @brief Constructs a Host from an FQDN string.
-     * @param fqdn     Null-terminated FQDN string. Truncated to MAX_FQDN_LEN characters if longer.
+     * @brief Constructs a Host from a string (IP address or FQDN).
+     * @param str Null-terminated string. Parsed as dotted-decimal IPv4 if valid,
+     *            otherwise as FQDN if RFC-conformant. Host is empty if neither.
      * @param resolver DNS resolver function. Defaults to Network.hostByName on ESP32,
-     *                 WiFi.hostByName on ESP8266, returns false on other platforms.
+     *                 WiFi.hostByName on ESP8266, DNSClient on AVR,
+     *                 returns false on other platforms.
      */
-    explicit Host(const char* fqdn, ResolverFn resolver = _defaultResolver)
+    explicit Host(const char* str, ResolverFn resolver = _defaultResolver)
         : _ip(IPAddress(0,0,0,0))
         , _resolver(resolver)
     {
-        if (isValidFqdn(fqdn)) {
-            snprintf(_fqdn, sizeof(_fqdn), "%s", fqdn);
-        } else {
-            _fqdn[0] = 0;
-        }
+        _fqdn[0] = 0;
+        fromStr(str);
     }
 
     Host(const Host&) = delete;

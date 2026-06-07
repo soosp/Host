@@ -63,8 +63,9 @@ Host h;
 // From IP address
 Host h1(IPAddress(192, 168, 1, 1));
 
-// From FQDN
+// From string — parsed as IP or FQDN automatically
 Host h2("example.com");
+Host h3("192.168.1.1");
 
 // Set/get
 h.setIP(IPAddress(10, 0, 0, 1));
@@ -125,7 +126,7 @@ It should be defined before including this library:
 ```cpp
 Host(ResolverFn resolver = _defaultResolver)
 explicit Host(const IPAddress ip, ResolverFn resolver = _defaultResolver)
-explicit Host(const char* fqdn, ResolverFn resolver = _defaultResolver)
+explicit Host(const char* str, ResolverFn resolver = _defaultResolver)
 ```
 
 Copy construction and copy assignment are disabled.
