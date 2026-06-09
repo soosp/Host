@@ -34,8 +34,14 @@ public:
     /** @brief Maximum FQDN label length. */
     static constexpr size_t MAX_FQDN_LABEL_LEN = 63;
 
+    /** @brief Buffer size for FQDN label including null terminator. */
+    static constexpr size_t MAX_FQDN_LABEL_SIZE = MAX_FQDN_LABEL_LEN + 1;
+
     /** @brief Maximum FQDN length. */
     static constexpr size_t MAX_FQDN_LEN = 253;
+
+    /** @brief Buffer size for FQDN including null terminator. */
+    static constexpr size_t MAX_FQDN_SIZE = MAX_FQDN_LEN + 1;
 
     /**
      * @brief Function signature for DNS resolution callbacks.
@@ -117,7 +123,7 @@ public:
     IPAddress getIP() {
         if (!_lock()) return IPAddress(0,0,0,0);
         IPAddress ip = _ip;
-        char fqdn[MAX_FQDN_LEN + 1];
+        char fqdn[MAX_FQDN_SIZE];
         snprintf(fqdn, sizeof(fqdn), "%s", _fqdn);
         _unlock();
         if (fqdn[0] != 0) {
@@ -297,7 +303,7 @@ private:
     mutable std::timed_mutex _mutex; ///< mutex protecting _ip and _fqdn.
 #endif
     IPAddress _ip;                   ///< Stored IPv4 address. Valid when _fqdn[0] == 0.
-    char _fqdn[MAX_FQDN_LEN + 1];    ///< Stored FQDN. Empty string when IP is used instead.
+    char _fqdn[MAX_FQDN_SIZE];       ///< Stored FQDN. Empty string when IP is used instead.
     ResolverFn _resolver;            ///< DNS resolver function used by getIP().
 
 #ifdef ARDUINO_ARCH_AVR

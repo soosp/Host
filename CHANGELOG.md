@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- \_LEN / \_SIZE constans for null terminated strings
 - mDNS resolver example in `README.md`
 
 ## [0.3.0]

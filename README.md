@@ -141,7 +141,9 @@ Host h("mydevice.local", mdnsWithFallback);
 |----------|-------|-------------|
 |`MUTEX_TIMEOUT`|1000|Default mutex acquisition timeout in milliseconds.|
 |`MAX_FQDN_LABEL_LEN`|63|Maximum length of a single FQDN label|
+|`MAX_FQDN_LABEL_SIZE`|64|Buffer size for a single FQDN label including null terminator|
 |`MAX_FQDN_LEN`|253|Maximum total FQDN length|
+|`MAX_FQDN_SIZE`|254|Buffer size for FQDN including null terminator|
 
 ### Configuration
 
