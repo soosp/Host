@@ -148,13 +148,21 @@ Host h("mydevice.local", mdnsWithFallback);
 ### Configuration
 
 The default mutex timeout is overridable via the `HOST_MUTEX_TIMEOUT` preprocessor macro.
-It must be defined before including this library.
+
+Although the RFC specifications define an FQDN as 253 characters and labels
+as 63 characters, these values can consume excessive memory on
+resource-constrained systems (e.g., Atmel AVR). Therefore, these lengths are
+configurable via preprocessor macros `HOST_FQDN_LABEL_LEN` and `HOST_FQDN_LEN`
+to allow smaller footprints.
+
+These macros must be defined before including this library.
 
 #### In PlatformIO (`platformio.ini`)
 
 ```ini
 build_flags =
     -D HOST_MUTEX_TIMEOUT 500
+    -D HOST_FQDN_LEN 63
 ```
 
 #### In Arduino IDE
@@ -163,6 +171,7 @@ Define it before including `Host.h`:
 
 ```cpp
 #define HOST_MUTEX_TIMEOUT 500
+#define HOST_FQDN_LEN 63
 #include <Host.h>
 ```
 

@@ -17,6 +17,33 @@
 #define HOST_MUTEX_TIMEOUT 1000
 #endif
 
+/*
+ * Although the RFC specifications define an FQDN as 253 characters 
+ * and labels as 63 characters, these values can consume excessive 
+ * memory on resource-constrained systems (e.g., Atmel AVR). 
+ * Therefore, these lengths are made configurable for smaller
+ * footprints.
+ */
+#ifndef HOST_FQDN_LEN
+#define HOST_FQDN_LEN 253
+#endif
+
+#if (HOST_FQDN_LEN < 1) || (HOST_FQDN_LEN > 253)
+  #error "HOST_FQDN_LEN must be in the [1, 253] range!"
+#endif
+
+#ifndef HOST_FQDN_LABEL_LEN
+#define HOST_FQDN_LABEL_LEN 63
+#endif
+
+#if (HOST_FQDN_LABEL_LEN < 1) || (HOST_FQDN_LABEL_LEN > 63)
+  #error "HOST_FQDN_LABEL_LEN must be in the [1, 63] range!"
+#endif
+
+#if (HOST_FQDN_LEN < HOST_FQDN_LABEL_LEN)
+  #error "HOST_FQDN_LEN must be greater than or equal to HOST_FQDN_LABEL_LEN!"
+#endif
+
 /**
  * @brief Represents a network host identified by either an IP address or an FQDN.
  *
@@ -32,13 +59,13 @@ public:
     static constexpr uint32_t MUTEX_TIMEOUT = HOST_MUTEX_TIMEOUT;
 
     /** @brief Maximum FQDN label length. */
-    static constexpr size_t MAX_FQDN_LABEL_LEN = 63;
+    static constexpr size_t MAX_FQDN_LABEL_LEN = HOST_FQDN_LABEL_LEN;
 
     /** @brief Buffer size for FQDN label including null terminator. */
     static constexpr size_t MAX_FQDN_LABEL_SIZE = MAX_FQDN_LABEL_LEN + 1;
 
     /** @brief Maximum FQDN length. */
-    static constexpr size_t MAX_FQDN_LEN = 253;
+    static constexpr size_t MAX_FQDN_LEN = HOST_FQDN_LEN;
 
     /** @brief Buffer size for FQDN including null terminator. */
     static constexpr size_t MAX_FQDN_SIZE = MAX_FQDN_LEN + 1;
