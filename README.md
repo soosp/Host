@@ -23,8 +23,10 @@ an IPv4 address or a fully qualified domain name (FQDN).
 |Other|Custom resolver required|
 
 *On the Arduino AVR platform, functionality is limited due to scarce resources.
-For example, on an ATmega328-based Uno, a 254-byte FQDN can already take up too much memory.
-The situation is better on the ATmega2560-based Mega.
+For example, on an ATmega328-based Uno, a 254-byte FQDN can already take up too
+much memory. The situation is better on the ATmega2560-based Mega.  
+There are preprocessor macros available to help resolve this issue:
+`HOST_FQDN_LABEL_LEN` and `HOST_FQDN_LEN`. See [Configuration](#configuration) for details.
 
 ## Installation
 
