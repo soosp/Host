@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file.
 ### Changed
 
 - Make the FQDN and FQDN label length configurable
+- Update AVR example to demonstrate how to use less memory
 
 ## [0.3.0]
 
