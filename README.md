@@ -28,6 +28,14 @@ much memory. The situation is better on the ATmega2560-based Mega.
 There are preprocessor macros available to help resolve this issue:
 `HOST_FQDN_LABEL_LEN` and `HOST_FQDN_LEN`. See [Configuration](#configuration) for details.
 
+## Dependencies
+
+|Platform|Dependencies|
+|--|--|
+|ESP32|[ESP32 Arduino Core 3.x](https://github.com/espressif/arduino-esp32)|
+|ESP8266|[ESP8266 Arduino Core 3.x](https://github.com/esp8266/arduino)|
+|AVR|[Ethernet library](https://github.com/arduino-libraries/Ethernet)|
+
 ## Installation
 
 ### Arduino IDE
