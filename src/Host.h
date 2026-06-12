@@ -204,7 +204,7 @@ public:
      * @brief Serializes the host to a human-readable string.
      *
      * Writes a dotted-decimal IP address (e.g. "192.168.1.1") if no FQDN is set,
-     * otherwise writes the FQDN.
+     * otherwise writes the FQDN. Empty host object results IP address "0.0.0.0".
      *
      * @param str Destination buffer.
      * @param len Size of the destination buffer in bytes.
@@ -225,9 +225,10 @@ public:
     /**
      * @brief Parses a string into a host identifier.
      *
-     * If the string matches a dotted-decimal format (e.g. "192.168.1.1") valid
-     * IP address, it is stored as an IP address. If the sting a valid FQDN it is
-     * stored and the IP is cleared. Otherwise returns false,
+     * Empty input string results empty host object. If the string matches
+     * a dotted-decimal format (e.g. "192.168.1.1") valid IP address, it is
+     * stored as an IP address. If the string a valid FQDN it is stored and
+     * the IP is cleared. Otherwise returns false.
      *
      * @param str Null-terminated input string.
      * @return true on success, false on neither valid IP address nor valid FQDN found,
@@ -235,10 +236,16 @@ public:
      */
     bool fromStr(const char *str) {
         unsigned int ip[4] = {0, 0, 0, 0};
-        bool isIp = isValidIp(str);
+        bool isIp;
 
-        if (isIp) sscanf(str, "%u.%u.%u.%u", &ip[0], &ip[1], &ip[2], &ip[3]);
-        else if (!isValidFqdn(str)) return false;
+        // Empty input string results empty host object
+        if (str[0] == '\0') {
+            isIp = true;
+        } else {
+            isIp = isValidIp(str);
+            if (isIp) sscanf(str, "%u.%u.%u.%u", &ip[0], &ip[1], &ip[2], &ip[3]);
+            else if (!isValidFqdn(str)) return false;
+        }
 
         if (!_lock()) return false;
         if (isIp) {

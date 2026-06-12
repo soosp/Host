@@ -274,16 +274,18 @@ the mutex could not be acquired.
 
 Serializes the host to a human-readable string. Writes a dotted-decimal IP
 address (e.g. `"192.168.1.1"`) if no FQDN is set, otherwise writes the FQDN.
-At most `len` bytes are written, including the null terminator.
+At most `len` bytes are written, including the null terminator. Empty host object
+results IP address `"0.0.0.0"`.
 Returns `true` if the result fit entirely, `false` on truncation or mutex failure.
 
 ---
 
 #### `bool fromStr(const char* str)`
 
-Parses a string into a host address. The string is first tried as a dotted-decimal
-IPv4 address with all octets in range [0, 255]; if that fails, it is tried as an
-RFC-conformant FQDN. The previously stored address is replaced only on success.
+Parses a string into a host address. Empty input string results empty host object.
+The string is first tried as a dotted-decimal IPv4 address with all octets
+in range [0, 255]; if that fails, it is tried as an RFC-conformant FQDN.
+The previously stored address is replaced only on success.
 Returns `true` on success, `false` if the string is neither a valid IP address
 nor a valid FQDN, or if the mutex could not be acquired.
 
