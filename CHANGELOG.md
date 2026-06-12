@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Changed
+
+- Use '\0' convention everywhere for empty zero terminated strings
+
 ## [0.4.0]
 
 ### Added

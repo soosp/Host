@@ -88,7 +88,7 @@ public:
         : _ip(IPAddress(0,0,0,0))
         , _resolver(resolver)
     {
-        _fqdn[0] = 0;
+        _fqdn[0] = '\0';
     }
 
     /**
@@ -101,7 +101,7 @@ public:
         : _ip(ip)
         , _resolver(resolver)
     {
-        _fqdn[0] = 0;
+        _fqdn[0] = '\0';
     }
 
     /**
@@ -116,7 +116,7 @@ public:
         : _ip(IPAddress(0,0,0,0))
         , _resolver(resolver)
     {
-        _fqdn[0] = 0;
+        _fqdn[0] = '\0';
         fromStr(str);
     }
 
@@ -134,7 +134,7 @@ public:
      */
     bool isEmpty() {
         if (!_lock()) return true;
-        bool empty = ((_fqdn[0] == 0) && (_ip == IPAddress(0,0,0,0)));
+        bool empty = ((_fqdn[0] == '\0') && (_ip == IPAddress(0,0,0,0)));
         _unlock();
         return empty;
     }
@@ -166,7 +166,7 @@ public:
      */
     bool setIP(IPAddress ip) {
         if (!_lock()) return false;
-        _fqdn[0] = 0;
+        _fqdn[0] = '\0';
         _ip = ip;
         _unlock();
         return true;
@@ -213,7 +213,7 @@ public:
     bool toStr(char* str, size_t len) {
         if (!_lock()) return false;
         int written;
-        if (_fqdn[0] == 0) {
+        if (_fqdn[0] == '\0') {
             written = snprintf(str, len, "%d.%d.%d.%d", _ip[0], _ip[1], _ip[2], _ip[3]);
         } else {
             written = snprintf(str, len, "%s", _fqdn);
@@ -243,7 +243,7 @@ public:
         if (!_lock()) return false;
         if (isIp) {
             _ip = IPAddress(ip[0], ip[1], ip[2], ip[3]);
-            _fqdn[0] = 0;
+            _fqdn[0] = '\0';
         } else {
             snprintf(_fqdn, sizeof(_fqdn), "%s", str);
             _ip = IPAddress(0,0,0,0);
@@ -266,7 +266,7 @@ public:
      * @return true if valid, false otherwise.
      */
     static bool isValidFqdn(const char* str) {
-        if (!str || str[0] == 0) return false;
+        if (!str || str[0] == '\0') return false;
 
         size_t totalLen = strlen(str);
 
@@ -329,7 +329,7 @@ private:
 #ifndef ARDUINO_ARCH_AVR
     mutable std::timed_mutex _mutex; ///< mutex protecting _ip and _fqdn.
 #endif
-    IPAddress _ip;                   ///< Stored IPv4 address. Valid when _fqdn[0] == 0.
+    IPAddress _ip;                   ///< Stored IPv4 address. Valid when _fqdn[0] == '\0'.
     char _fqdn[MAX_FQDN_SIZE];       ///< Stored FQDN. Empty string when IP is used instead.
     ResolverFn _resolver;            ///< DNS resolver function used by getIP().
 
