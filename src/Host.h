@@ -325,10 +325,43 @@ public:
      * @return true if valid, false otherwise.
      */
     static bool isValidIp(const char* str) {
-        unsigned int ip[4] = {0, 0, 0, 0};
-        char tail[2] = {0};
-        if (sscanf(str, "%u.%u.%u.%u%1s", &ip[0], &ip[1], &ip[2], &ip[3], tail) != 4) return false;
-        if (ip[0] > 255 || ip[1] > 255 || ip[2] > 255 || ip[3] > 255) return false;
+        return parseIp(str);
+    }
+
+    /**
+     * @brief Validates and optionally parses a string as dotted-decimal IP address.
+     * @param str Null-terminated string.
+     * @param ip Optional output array (4 byte). If nullptr, it validates only.
+     * @return true if valid, false otherwise.
+     */
+    static bool parseIp(const char* str, uint8_t* ip = nullptr) {
+        if (!str || *str == '\0') return false;
+        
+        uint16_t octet = 0;
+        uint8_t dot = 0;
+        bool isDigit = false;
+
+        while (*str) {
+            char c = *str++;
+            if (c >= '0' && c <= '9') {
+                octet = octet * 10 + (c - '0');
+                if (octet > 255) return false;
+                isDigit = true;
+            } else if (c == '.') {
+                if (!isDigit || dot >= 3) return false;
+                if (ip) ip[dot] = (uint8_t)octet;
+                dot++;
+                octet = 0;
+                isDigit = false;
+            } else {
+                return false; // Invalid character
+            }
+        }
+        
+        // Checking last octet
+        if (!isDigit || dot != 3) return false;
+        if (ip) ip[3] = (uint8_t)octet;
+        
         return true;
     }
 

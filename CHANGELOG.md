@@ -34,6 +34,8 @@ All notable changes to this project will be documented in this file.
 ### Changed
 
 - Use fromStr() in constructor to use not just FQDN but dotted decimal IP address string too.
+- Updated examples
+- A lightweight IP validator and parser instead of sscanf
 
 ## [0.2.1] - 2026-06-06
 
