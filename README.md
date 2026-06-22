@@ -227,7 +227,7 @@ Copy construction and copy assignment are disabled.
 
 ---
 
-#### `bool isEmpty()`
+#### `bool isEmpty() const`
 
 Returns `true` if the Host holds neither an IP address nor an FQDN (i.e. it was
 default-constructed, or parsing failed). Also returns `true` if the internal mutex
@@ -235,7 +235,7 @@ could not be acquired within `MUTEX_TIMEOUT` milliseconds.
 
 ---
 
-#### `IPAddress getIP()`
+#### `IPAddress getIP() const`
 
 Returns the IP address of the host. If an IP address is stored directly, it is
 returned immediately. If only an FQDN is stored, a DNS lookup is performed via
@@ -253,7 +253,7 @@ Returns `true` on success, `false` if the mutex could not be acquired.
 
 ---
 
-#### `bool getFqdn(char* buf, size_t len)`
+#### `bool getFqdn(char* buf, size_t len) const`
 
 Copies the stored FQDN into `buf`. At most `len` bytes are written, including
 the null terminator. Returns `true` if the FQDN fit entirely into the buffer,
