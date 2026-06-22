@@ -4,13 +4,18 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Changed
+
+- Updated examples
+- A lightweight IP validator and parser instead of sscanf
+- Make getters const
+
 ## [0.5.0]
 
 ### Changed
 
 - Use '\0' convention everywhere for empty zero terminated strings
 - fromStr(): Empty input string results empty host object
-- Make getters const
 
 ## [0.4.0]
 
@@ -34,8 +39,6 @@ All notable changes to this project will be documented in this file.
 ### Changed
 
 - Use fromStr() in constructor to use not just FQDN but dotted decimal IP address string too.
-- Updated examples
-- A lightweight IP validator and parser instead of sscanf
 
 ## [0.2.1] - 2026-06-06
 

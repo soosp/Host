@@ -44,6 +44,10 @@
   #error "HOST_FQDN_LEN must be greater than or equal to HOST_FQDN_LABEL_LEN!"
 #endif
 
+#ifndef HOST_DNS_CACHE_TTL_MS
+  #define HOST_DEFAULT_DNS_CACHE_TTL_MS 300000 // 5 minutes default
+#endif
+
 /**
  * @brief Represents a network host identified by either an IP address or an FQDN.
  *
@@ -70,6 +74,9 @@ public:
     /** @brief Buffer size for FQDN including null terminator. */
     static constexpr size_t MAX_FQDN_SIZE = MAX_FQDN_LEN + 1;
 
+    /** @brief TTL for DNS cache in miliseconds */
+    static constexpr size_t DEFAULT_DNS_CACHE_TTL_MS = HOST_DEFAULT_DNS_CACHE_TTL_MS;
+
     /**
      * @brief Function signature for DNS resolution callbacks.
      *
@@ -86,6 +93,9 @@ public:
      */
     Host(ResolverFn resolver = _defaultResolver)
         : _ip(IPAddress(0,0,0,0))
+        , _ttl(DEFAULT_DNS_CACHE_TTL_MS)
+        , _resolvedIp(IPAddress(0,0,0,0))
+        , _lastResolveTime(0)
         , _resolver(resolver)
     {
         _fqdn[0] = '\0';
@@ -99,6 +109,9 @@ public:
      */
     explicit Host(const IPAddress ip, ResolverFn resolver = _defaultResolver)
         : _ip(ip)
+        , _ttl(DEFAULT_DNS_CACHE_TTL_MS)
+        , _resolvedIp(IPAddress(0,0,0,0))
+        , _lastResolveTime(0)
         , _resolver(resolver)
     {
         _fqdn[0] = '\0';
@@ -114,6 +127,9 @@ public:
      */
     explicit Host(const char* str, ResolverFn resolver = _defaultResolver)
         : _ip(IPAddress(0,0,0,0))
+        , _ttl(DEFAULT_DNS_CACHE_TTL_MS)
+        , _resolvedIp(IPAddress(0,0,0,0))
+        , _lastResolveTime(0)
         , _resolver(resolver)
     {
         _fqdn[0] = '\0';
@@ -150,11 +166,40 @@ public:
     IPAddress getIP() const {
         if (!_lock()) return IPAddress(0,0,0,0);
         IPAddress ip = _ip;
+        IPAddress resolvedIp = _resolvedIp;
+        bool needsResolve = false;
         char fqdn[MAX_FQDN_SIZE];
+        // Safely copy the FQDN
         snprintf(fqdn, sizeof(fqdn), "%s", _fqdn);
+        
+        // Only check cache expiration if we actually have an FQDN
+        if (fqdn[0] != '\0') {
+            if ((millis() - _lastResolveTime) > _ttl || _resolvedIp == IPAddress(0,0,0,0)) {
+                needsResolve = true;
+            }
+        }
         _unlock();
-        if (fqdn[0] != 0) {
-            if (!_resolver(fqdn, ip)) ip = IPAddress(0,0,0,0);
+
+        if (fqdn[0] != '\0') {
+            if (needsResolve) {
+                // Perform DNS lookup outside the critical section
+                if (!_resolver(fqdn, resolvedIp)) {
+                    resolvedIp = IPAddress(0,0,0,0);
+                } else {
+                    if (!_lock()) return IPAddress(0,0,0,0);
+                    // Prevent race condition: ensure FQDN wasn't changed by 
+                    // another thread while we were resolving
+                    if (strncmp(_fqdn, fqdn, MAX_FQDN_SIZE) == 0) {
+                        _resolvedIp = resolvedIp;
+                        _lastResolveTime = millis(); // Update the cache timestamp
+                    } else {
+                        // FQDN changed during resolution! The resolved IP is obsolete.
+                        resolvedIp = IPAddress(0,0,0,0);
+                    }
+                    _unlock();
+                }
+            }
+            ip = resolvedIp;
         }
         return ip;
     }
@@ -168,6 +213,7 @@ public:
         if (!_lock()) return false;
         _fqdn[0] = '\0';
         _ip = ip;
+        _resolvedIp = IPAddress(0,0,0,0); // Invalidate cache
         _unlock();
         return true;
     }
@@ -196,6 +242,30 @@ public:
         if (!_lock()) return false;
         snprintf(_fqdn, sizeof(_fqdn), "%s", fqdn);
         _ip = IPAddress(0,0,0,0);
+        _resolvedIp = IPAddress(0,0,0,0); // Invalidate cache
+        _unlock();
+        return true;
+    }
+
+    /**
+     * @brief Returns the TTL of DNS cache in miliseconds.
+     * @return The value of TTL, 0 on mutex failure.
+     */
+    uint32_t getTTL() const {
+        if (!_lock()) return 0;
+        uint32_t ttl = _ttl;
+        _unlock();
+        return ttl;
+    }
+
+    /**
+     * @brief Sets the TTL of DNS cache in miliseconds.
+     * @param ttl The value of the DNS cache TTL.
+     * @return True on success, false on mutex failure.
+     */
+    bool setTTL(const uint32_t ttl) {
+        if (!_lock()) return false;
+        _ttl = ttl;
         _unlock();
         return true;
     }
@@ -235,16 +305,15 @@ public:
      *         or mutex acquisition failed.
      */
     bool fromStr(const char *str) {
-        unsigned int ip[4] = {0, 0, 0, 0};
+        uint8_t ip[4] = {0, 0, 0, 0};
         bool isIp;
 
         // Empty input string results empty host object
         if (str[0] == '\0') {
             isIp = true;
         } else {
-            isIp = isValidIp(str);
-            if (isIp) sscanf(str, "%u.%u.%u.%u", &ip[0], &ip[1], &ip[2], &ip[3]);
-            else if (!isValidFqdn(str)) return false;
+            isIp = parseIp(str, ip);
+            if (!isIp && !isValidFqdn(str)) return false;
         }
 
         if (!_lock()) return false;
@@ -255,6 +324,7 @@ public:
             snprintf(_fqdn, sizeof(_fqdn), "%s", str);
             _ip = IPAddress(0,0,0,0);
         }
+        _resolvedIp = IPAddress(0,0,0,0); // Invalidate cache
         _unlock();
         return true;
     }
@@ -367,11 +437,14 @@ public:
 
 private:
 #ifndef ARDUINO_ARCH_AVR
-    mutable std::timed_mutex _mutex; ///< mutex protecting _ip and _fqdn.
+    mutable std::timed_mutex _mutex;    ///< mutex protecting _ip and _fqdn.
 #endif
-    IPAddress _ip;                   ///< Stored IPv4 address. Valid when _fqdn[0] == '\0'.
-    char _fqdn[MAX_FQDN_SIZE];       ///< Stored FQDN. Empty string when IP is used instead.
-    ResolverFn _resolver;            ///< DNS resolver function used by getIP().
+    IPAddress _ip;                      ///< Stored IPv4 address. Valid when _fqdn[0] == '\0'.
+    char _fqdn[MAX_FQDN_SIZE];          ///< Stored FQDN. Empty string when IP is used instead.
+    uint32_t _ttl;                      ///< DNC cache TTL.
+    mutable IPAddress _resolvedIp;      ///< Cached IP address from DNS resolution.
+    mutable uint32_t _lastResolveTime;  ///< Timestamp of the last successful resolution.
+    ResolverFn _resolver;               ///< DNS resolver function used by getIP().
 
 #ifdef ARDUINO_ARCH_AVR
     /** @brief AVR is single-threaded; lock always succeeds. Timeout parameter is ignored. */
