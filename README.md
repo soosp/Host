@@ -154,6 +154,7 @@ Host h("mydevice.local", mdnsWithFallback);
 |`MAX_FQDN_LABEL_SIZE`|64|Buffer size for a single FQDN label including null terminator|
 |`MAX_FQDN_LEN`|253|Maximum total FQDN length|
 |`MAX_FQDN_SIZE`|254|Buffer size for FQDN including null terminator|
+|`DEFAULT_DNS_CACHE_TTL_MS`|300000|Default DNS cache TTL|
 
 ### Configuration
 
@@ -164,6 +165,9 @@ as 63 characters, these values can consume excessive memory on
 resource-constrained systems (e.g., Atmel AVR). Therefore, these lengths are
 configurable via preprocessor macros `HOST_FQDN_LABEL_LEN` and `HOST_FQDN_LEN`
 to allow smaller footprints.
+
+The default resolver cache TTL is overridable via the `HOST_DEFAULT_DNS_CACHE_TTL_MS`
+preprocessor macro.
 
 These macros must be defined before including this library.
 
@@ -240,7 +244,9 @@ could not be acquired within `MUTEX_TIMEOUT` milliseconds.
 Returns the IP address of the host. If an IP address is stored directly, it is
 returned immediately. If only an FQDN is stored, a DNS lookup is performed via
 the resolver function. The DNS lookup is intentionally done outside the mutex to
-avoid blocking other threads during network I/O.
+avoid blocking other threads during network I/O. To reduce the number of DNS
+lookups it stores the resolved IP address and returns it until the set TTL
+expires. Once the TTL has expired, it performs a new query.
 
 Returns `0.0.0.0` if the mutex could not be acquired or DNS resolution failed.
 
@@ -267,6 +273,19 @@ Sets the host address to the given FQDN and clears the stored IP.
 The FQDN is validated against RFC 1035 / RFC 3696 rules before storing.
 Returns `true` on success, `false` if the FQDN is not RFC-conformant or
 the mutex could not be acquired.
+
+---
+
+#### `uint32_t getTTL() const`
+
+ Returns the TTL of DNS cache in miliseconds, or `0` on mutex failure.
+
+---
+
+#### `bool setTTL(const uint32_t ttl)`
+
+Sets the TTL of DNS cache in miliseconds. Returns `true` on success,
+`false` on mutex failure.
 
 ---
 
@@ -305,11 +324,25 @@ Returns `true` if the string is a valid FQDN, `false` otherwise.
 
 ---
 
+#### `static bool parseIp(const char* str, uint8_t* ip = nullptr)`
+
+Validates and optionally parses a string as dotted-decimal IPv4 address.
+All four octets must be present and in the range [0, 255].
+Extra characters after the fourth octet (e.g. `"1.2.3.4.5"`), and any non
+number and non dot character in the string cause the validation to fail.
+
+Returns `true` if the string is a valid dotted-decimal IPv4 address, `false`
+otherwise.
+
+If parameter `ip` is specified, the IP address in the string will be parsed
+into it.
+
+---
+
 #### `static bool isValidIp(const char* str)`
 
-Validates a string as a dotted-decimal IPv4 address. All four octets must be
-present and in the range [0, 255]. Extra characters after the fourth octet
-(e.g. `"1.2.3.4.5"`) cause the validation to fail.
+Validates a string as a dotted-decimal IPv4 address. Retained for compatibility
+reasons. Uses `parseIp` in the backgroud.
 
 Returns `true` if the string is a valid IPv4 address, `false` otherwise.
 

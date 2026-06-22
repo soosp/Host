@@ -249,7 +249,7 @@ public:
 
     /**
      * @brief Returns the TTL of DNS cache in miliseconds.
-     * @return The value of TTL, 0 on mutex failure.
+     * @return Value of TTL, 0 on mutex failure.
      */
     uint32_t getTTL() const {
         if (!_lock()) return 0;
@@ -261,7 +261,7 @@ public:
     /**
      * @brief Sets the TTL of DNS cache in miliseconds.
      * @param ttl The value of the DNS cache TTL.
-     * @return True on success, false on mutex failure.
+     * @return true on success, false on mutex failure.
      */
     bool setTTL(const uint32_t ttl) {
         if (!_lock()) return false;
