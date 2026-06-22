@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file.
 
 - Use '\0' convention everywhere for empty zero terminated strings
 - fromStr(): Empty input string results empty host object
+- Make getters const
 
 ## [0.4.0]
 

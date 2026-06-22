@@ -132,7 +132,7 @@ public:
      * @brief Checks whether the Host holds no address (IP is 0.0.0.0 and FQDN is empty).
      * @return true if empty or mutex acquisition failed, false otherwise.
      */
-    bool isEmpty() {
+    bool isEmpty() const {
         if (!_lock()) return true;
         bool empty = ((_fqdn[0] == '\0') && (_ip == IPAddress(0,0,0,0)));
         _unlock();
@@ -147,7 +147,7 @@ public:
      *
      * @return Resolved or stored IP address, or 0.0.0.0 on failure.
      */
-    IPAddress getIP() {
+    IPAddress getIP() const {
         if (!_lock()) return IPAddress(0,0,0,0);
         IPAddress ip = _ip;
         char fqdn[MAX_FQDN_SIZE];
@@ -178,7 +178,7 @@ public:
      * @param len  Size of the destination buffer in bytes.
      * @return true if the FQDN fit entirely, false on truncation or mutex failure.
      */
-    bool getFqdn(char* fqdn, size_t len) {
+    bool getFqdn(char* fqdn, size_t len) const {
         if (!_lock()) return false;
         int written = snprintf(fqdn, len, "%s", _fqdn);
         bool ok = (written >= 0 && (size_t)written < len);
@@ -210,7 +210,7 @@ public:
      * @param len Size of the destination buffer in bytes.
      * @return true if the result fit entirely, false on truncation or mutex failure.
      */
-    bool toStr(char* str, size_t len) {
+    bool toStr(char* str, size_t len) const {
         if (!_lock()) return false;
         int written;
         if (_fqdn[0] == '\0') {
