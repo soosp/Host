@@ -41,6 +41,7 @@ All notable changes to this project will be documented in this file.
 
 - Minor fixes in `README.md`
 - Remove redundant FQDN validity checks
+- Updated examples
 
 ## [0.2.0] - 2026-06-06
 

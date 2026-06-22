@@ -19,7 +19,7 @@ byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
 Host host("arduino.com");
 
 void setup() {
-  char fqdn[Host::MAX_FQDN_LEN + 1]; // 253 characters by RFC + trailing zero
+  char str[Host::MAX_FQDN_SIZE]; // HOST_FQDN_LEN + trailing zero
   IPAddress ip(0,0,0,0);
 
   Serial.begin(115200);
@@ -38,9 +38,9 @@ void setup() {
 
   delay(500);
 
-  host.getFqdn(fqdn, sizeof(fqdn)); // Get FQDN from host object
+  host.getFqdn(str, sizeof(str)); // Get FQDN from host object
   Serial.print(F("Resolving host "));
-  Serial.print(fqdn);
+  Serial.print(str);
   Serial.print(F(": "));
   ip = host.getIP(); // Get IP address of the host
   if (ip != IPAddress(0,0,0,0))
@@ -50,10 +50,32 @@ void setup() {
 
   delay(500);
 
-  host.setFqdn(PSTR("espressif.com"));
-  host.getFqdn(fqdn, sizeof(fqdn)); // Read back for later use
+  host.fromStr(PSTR("espressif.com"));
+  host.getFqdn(str, sizeof(str)); // Read back for later use
   Serial.print(F("Resolving host "));
-  Serial.print(fqdn);
+  Serial.print(str);
+  Serial.print(F(": "));
+  ip = host.getIP(); // Get IP address of the host
+  if (ip != IPAddress(0,0,0,0))
+    Serial.println(ip);
+  else
+    Serial.println(F("failed"));
+
+  host.setFqdn(PSTR("platformio.org"));
+  host.toStr(str, sizeof(str)); // Read back for later use
+  Serial.print(F("Resolving host "));
+  Serial.print(str);
+  Serial.print(F(": "));
+  ip = host.getIP(); // Get IP address of the host
+  if (ip != IPAddress(0,0,0,0))
+    Serial.println(ip);
+  else
+    Serial.println(F("failed"));
+  
+  host.fromStr(PSTR("192.168.0.1"));
+  host.toStr(str, sizeof(str)); // Read back for later use
+  Serial.print(F("Check IP of host "));
+  Serial.print(str);
   Serial.print(F(": "));
   ip = host.getIP(); // Get IP address of the host
   if (ip != IPAddress(0,0,0,0))
