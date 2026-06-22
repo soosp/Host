@@ -25,7 +25,7 @@
  * footprints.
  */
 #ifndef HOST_FQDN_LEN
-#define HOST_FQDN_LEN 253
+  #define HOST_FQDN_LEN 253
 #endif
 
 #if (HOST_FQDN_LEN < 1) || (HOST_FQDN_LEN > 253)
@@ -33,7 +33,7 @@
 #endif
 
 #ifndef HOST_FQDN_LABEL_LEN
-#define HOST_FQDN_LABEL_LEN 63
+  #define HOST_FQDN_LABEL_LEN 63
 #endif
 
 #if (HOST_FQDN_LABEL_LEN < 1) || (HOST_FQDN_LABEL_LEN > 63)
