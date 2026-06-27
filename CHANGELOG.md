@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.6.1]
+
 ### Changed
 
 - Fix type of `DEFAULT_DNS_CACHE_TTL_MS`
