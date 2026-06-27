@@ -75,7 +75,7 @@ public:
     static constexpr size_t MAX_FQDN_SIZE = MAX_FQDN_LEN + 1;
 
     /** @brief TTL for DNS cache in miliseconds */
-    static constexpr size_t DEFAULT_DNS_CACHE_TTL_MS = HOST_DEFAULT_DNS_CACHE_TTL_MS;
+    static constexpr uint32_t DEFAULT_DNS_CACHE_TTL_MS = HOST_DEFAULT_DNS_CACHE_TTL_MS;
 
     /**
      * @brief Function signature for DNS resolution callbacks.
