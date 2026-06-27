@@ -1,6 +1,6 @@
 {
   "name": "Host",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "Thread-safe Arduino library for storing and resolving network hosts by IPv4 address or FQDN.",
   "keywords": "network, host, ip, fqdn, dns, esp32, esp8266, freertos, thread-safe",
   "repository": {
